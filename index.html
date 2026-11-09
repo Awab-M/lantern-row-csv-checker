@@ -132,11 +132,76 @@ footer strong{color:#f1fbf2;font-size:13px;white-space:nowrap}
 @media(max-width:760px){.container{width:min(100% - 34px,600px)}.topbar .container{min-height:68px}.links{display:none}.top-link{padding:10px 13px}.hero .container{display:flex;flex-direction:column;align-items:stretch;gap:36px;padding-top:57px;padding-bottom:58px;min-height:0}h1{font-size:clamp(43px,10vw,61px);max-width:530px}.hero-copy>p{font-size:15px}.scanner{max-width:none}.trustbar .container{padding:23px 0}.process,.explainer{grid-template-columns:1fr}.content{padding-top:56px}.process article{min-height:0;padding:24px}.explainer{margin-top:33px}.what-card,.review-card{padding:25px}.results{padding:20px}.stats{gap:7px}.stat{padding:13px}.stat strong{font-size:28px}.stat span{font-size:10px}.hero-wave{transform:scale(1.8);transform-origin:50% 20%}}
 @media(max-width:390px){h1{font-size:41px}.scanner{padding:16px}.scanner-actions{flex-direction:column}.stepper .step{font-size:10px}.what-list{grid-template-columns:1fr}.stat strong{font-size:25px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition-duration:0.01ms!important;animation-duration:0.01ms!important}}
+
+/* V3: navigation, scroll response, feedback and accessibility */
+html{scroll-padding-top:92px}
+#top,#scanner,#how,#review,#results{scroll-margin-top:92px}
+.topbar{position:sticky;top:0;z-index:70;transition:background .24s,box-shadow .24s,border-color .24s;backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);background:#f9fbf8ee}
+.topbar .container{transition:min-height .24s}
+.topbar.scrolled{background:#f9fbf8f5;box-shadow:0 10px 35px #103c2d14;border-bottom-color:#d8e5db}
+.topbar.scrolled .container{min-height:65px}
+.scroll-progress{position:fixed;inset:0 0 auto;height:3px;background:transparent;z-index:100;pointer-events:none;overflow:hidden}
+.scroll-progress span{display:block;width:100%;height:100%;background:linear-gradient(90deg,#63d6ae,#bbf4a2,#4c9a7d);transform:scaleX(0);transform-origin:left center;will-change:transform}
+.brand{transition:opacity .15s}.brand:hover{opacity:.78}.brand:active{transform:translateY(1px)}
+.hero-wave{translate:0 var(--wave-offset,0px);transition:opacity .4s}
+.hero-copy{translate:0 var(--hero-offset,0px)}
+.hero .container{position:relative}
+.hero-cta,.top-link,.primary,.secondary,.review-card .cta{transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.hero-cta:hover{box-shadow:0 15px 38px #caff9140}
+.scanner{transition:box-shadow .3s ease,border-color .3s ease}
+.scanner:focus-within{border-color:#97d4be;box-shadow:0 25px 85px #0005,0 0 0 6px #a8efbd1c}
+.dropzone{isolation:isolate}
+.upload-icon{transition:transform .23s cubic-bezier(.2,.8,.2,1),box-shadow .23s}
+.dropzone:hover .upload-icon,.dropzone.dragging .upload-icon{transform:translateY(-4px);box-shadow:0 9px 22px #8fcaa978}
+.process article,.what-card,.review-card{transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,border-color .28s}
+.process article:hover{transform:translateY(-5px);box-shadow:0 17px 40px #234b2e13;border-color:#b5d4be}
+.what-card:hover,.review-card:hover{transform:translateY(-3px)}
+.section-title{max-width:750px}
+.js-motion [data-reveal]{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s cubic-bezier(.16,1,.3,1)}
+.js-motion [data-reveal].revealed{opacity:1;transform:translateY(0)}
+.process article:nth-child(2){transition-delay:.08s}
+.process article:nth-child(3){transition-delay:.16s}
+.back-to-top{position:fixed;bottom:calc(23px + env(safe-area-inset-bottom,0px));right:22px;z-index:85;background:#15352f;color:#e8ffed;border:1px solid #77ba99;border-radius:100px;min-height:48px;padding:10px 16px;display:flex;align-items:center;gap:7px;box-shadow:0 12px 32px #06231b35;font:700 12px "DM Sans",sans-serif;transform:translateY(20px) scale(.92);opacity:0;pointer-events:none;transition:transform .23s,opacity .23s}
+.back-to-top.visible{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.back-to-top:hover{background:#245545;transform:translateY(-2px) scale(1)}
+.back-to-top svg{width:16px;height:16px}
+.toast{position:fixed;z-index:100;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));translate:-50% 15px;opacity:0;pointer-events:none;background:#172f2d;color:#f6fff6;padding:12px 18px;border-radius:100px;font:700 12px "DM Sans",sans-serif;box-shadow:0 12px 38px #142f3240;transition:opacity .2s,translate .2s;max-width:calc(100vw - 40px);text-align:center}
+.toast.visible{opacity:1;translate:-50% 0}
+.stats .stat{transition:transform .2s}.stats .stat:hover{transform:translateY(-3px)}
+@media(max-width:760px){
+.topbar .container{gap:12px}
+.top-link{font-size:11px;padding:10px 13px}
+.hero .container{padding-top:49px}
+.hero-wave{opacity:.72}
+.back-to-top{right:14px;bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(79px + env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:390px){.top-link{font-size:10px;padding:9px 10px}.brand{font-size:16px}.logo{width:32px;height:32px}}
+@media(prefers-reduced-motion:reduce){
+html{scroll-behavior:auto}
+.js-motion [data-reveal]{opacity:1;transform:none}
+.hero-wave,.hero-copy{translate:0 0 !important}
+.process article:nth-child(2),.process article:nth-child(3){transition-delay:0s}
+}
+
+
+.issue-filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:9px 0 17px}
+.issue-filter-row button{border:1px solid #d8e5da;background:#f9fcf9;color:#51665d;border-radius:100px;padding:9px 13px;min-height:40px;font-size:12px;font-weight:800;display:inline-flex;gap:8px;align-items:center;transition:background .15s,color .15s,transform .15s}
+.issue-filter-row button[aria-pressed="true"]{background:#17392f;color:#effff1;border-color:#17392f}
+.issue-filter-row button:hover{transform:translateY(-1px)}
+.issue-filter-row button span{font-size:10px;background:#ddece0;color:#285b43;border-radius:20px;padding:3px 7px}
+.issue-filter-row button[aria-pressed="true"] span{background:#bde8b8;color:#123c23}
+#filter-empty{margin:20px 0 0;padding:14px;background:#f2f7f3;border:1px solid #dfe9e1;border-radius:10px;color:#506e5d;font-size:12px}
+.skip-link{position:absolute;top:-80px;left:8px;z-index:200;background:#dfffba;color:#133b2c;padding:11px 16px;border-radius:8px;font-weight:800}
+.skip-link:focus{top:8px}
+
 </style>
 </head>
 <body>
-<header class="topbar"><div class="container">
-<a class="brand" href="#" aria-label="Lantern Row home">
+<a class="skip-link" href="#scanner">Skip to CSV scanner</a>
+<div class="scroll-progress" aria-hidden="true"><span id="scroll-progress-fill"></span></div>
+<header class="topbar" id="top"><div class="container">
+<a class="brand" href="#top" title="Return to top of page" aria-label="Lantern Row home">
 <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 21V5l5-3 5 3v16M6 21h12M9 9h6M9 13h6M9 17h6"/></svg></span>
 <span class="brand-type">Lantern Row<small>CSV Preflight Studio</small></span></a>
 <nav class="links" aria-label="Main navigation"><a href="#scanner">Free scanner</a><a href="#how">How it works</a><a href="#review">Expert review</a></nav>
@@ -179,25 +244,25 @@ footer strong{color:#f1fbf2;font-size:13px;white-space:nowrap}
 <section class="results hidden" id="results" aria-label="Diagnostic results" tabindex="-1">
 <div class="results-header"><div><span class="section-kicker">Your results</span><h2>Here’s what we found.</h2><p class="small" id="summary"></p></div><span class="live-dot">Local analysis complete</span></div>
 <div class="stats"><div class="stat"><strong id="rows">0</strong><span>Data rows</span></div><div class="stat errors"><strong id="errors">0</strong><span>Errors</span></div><div class="stat warnings"><strong id="warnings">0</strong><span>Warnings</span></div></div>
-<h3 class="findings-title">Findings</h3><div id="issues"></div>
-<div class="result-actions"><button class="primary" id="download" type="button">↓ Download full CSV report</button><button class="secondary" id="copy" type="button">Copy summary</button></div>
+<h3 class="findings-title">Findings</h3><div class="issue-filter-row" id="issue-filters" role="group" aria-label="Filter results"><button type="button" data-filter="all" aria-pressed="true">All <span>0</span></button><button type="button" data-filter="errors" aria-pressed="false">Errors <span>0</span></button><button type="button" data-filter="warnings" aria-pressed="false">Warnings <span>0</span></button></div><div id="issues"></div><p id="filter-empty" hidden></p>
+<div class="result-actions"><button class="primary" id="download" type="button">↓ Download full CSV report</button><button class="secondary" id="copy" type="button">Copy summary</button><button class="secondary" id="new-scan" type="button">New scan ↻</button></div>
 </section>
-<section id="how">
+<section id="how" class="reveal-section" data-reveal>
 <span class="section-kicker">Small steps, fewer surprises</span>
 <h2 class="section-title">A preflight, not a guessing game.</h2>
 <p class="section-lead">No dashboard maze. Just three straightforward steps that turn an intimidating spreadsheet into a clear list of things worth checking.</p>
 <div class="process">
-<article><span class="num">01</span><h3>Choose a CSV.</h3><p>Start with a product export or supplier CSV. Your file stays on this device and is never sent to our server.</p></article>
-<article><span class="num">02</span><h3>See the red flags.</h3><p>We flag uneven rows, missing key fields, repeated SKUs, suspicious prices and several common import risks.</p></article>
-<article><span class="num">03</span><h3>Keep your report.</h3><p>Download the complete findings as a CSV or copy the summary. No automatic file modification.</p></article>
+<article data-reveal><span class="num">01</span><h3>Choose a CSV.</h3><p>Start with a product export or supplier CSV. Your file stays on this device and is never sent to our server.</p></article>
+<article data-reveal><span class="num">02</span><h3>See the red flags.</h3><p>We flag uneven rows, missing key fields, repeated SKUs, suspicious prices and several common import risks.</p></article>
+<article data-reveal><span class="num">03</span><h3>Keep your report.</h3><p>Download the complete findings as a CSV or copy the summary. No automatic file modification.</p></article>
 </div>
 </section>
 <div class="explainer">
-<section class="what-card"><span class="section-kicker">What gets checked</span><h2>Focused where mistakes hide.</h2>
+<section class="what-card" data-reveal><span class="section-kicker">What gets checked</span><h2>Focused where mistakes hide.</h2>
 <ul class="what-list"><li>Broken row structure</li><li>Empty or repeated headers</li><li>Missing handles or titles</li><li>Duplicate nonblank SKUs</li><li>Price and compare-at formatting</li><li>Unusual image URLs</li></ul>
 <p class="disclaimer">Findings are indicators, not a guarantee of import compatibility. Shopify variants may legitimately share handles; supplier exports and other platforms can use different columns.</p>
 </section>
-<section class="review-card" id="review"><span class="section-kicker" style="color:#b7f0cc">When you need a second look</span><h2>Go beyond the quick scan.</h2><p>For a more detailed AI-prepared diagnostic of a Shopify product CSV, Lantern Row offers a one-file review (up to 100 rows). Check the exact current offer before buying.</p>
+<section class="review-card" id="review" data-reveal><span class="section-kicker" style="color:#b7f0cc">When you need a second look</span><h2>Go beyond the quick scan.</h2><p>For a more detailed AI-prepared diagnostic of a Shopify product CSV, Lantern Row offers a one-file review (up to 100 rows). Check the exact current offer before buying.</p>
 <div class="cost">CA$29 <small>one-time</small></div>
 <a class="cta" href="https://whop.com/linkedin-com-0cd1/products/lantern-row-csv-check/" target="_blank" rel="noopener noreferrer">View the detailed CSV review ↗</a>
 <p class="fine">Separate paid service. No guarantee of automatic corrections or a successful import.</p>
@@ -205,6 +270,7 @@ footer strong{color:#f1fbf2;font-size:13px;white-space:nowrap}
 </div>
 </div>
 </main>
+<button id="back-to-top" class="back-to-top" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 14 6-6 6 6"/><path d="M12 8v12"/></svg><span>Top</span></button><div id="toast" role="status" aria-live="polite" class="toast" aria-atomic="true"></div>
 <footer><div class="container"><strong>Lantern Row ◇</strong><p>Built for clarity, not clutter. This browser tool does not upload your files, create accounts or use analytics pixels. No affiliation with Shopify. Review all findings against the current import requirements for your platform.</p></div></footer>
 
 <script>
@@ -265,6 +331,94 @@ zone.addEventListener("drop",e=>{const incoming=e.dataTransfer?.files;if(!incomi
 const reveal=()=>setTimeout(()=>{if(!result.classList.contains("hidden")){steps.forEach(s=>s.classList.add("on"));result.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}},70);
 document.getElementById("demo").addEventListener("click",reveal);
 document.getElementById("scan").addEventListener("click",()=>setTimeout(reveal,160));
+})();
+</script>
+<script>
+/* Scroll-linked response and reliable home navigation; no analytics */
+(function(){
+"use strict";
+const header=document.getElementById("top"),brand=document.querySelector(".brand"),back=document.getElementById("back-to-top"),bar=document.getElementById("scroll-progress-fill"),wave=document.querySelector(".hero-wave"),heroCopy=document.querySelector(".hero-copy"),toast=document.getElementById("toast");
+const media=window.matchMedia("(prefers-reduced-motion: reduce)");
+let frame=0,toastTimer=0;
+const reduce=()=>media.matches;
+function home(e){
+ if(e)e.preventDefault();
+ window.scrollTo({top:0,left:0,behavior:reduce()?"auto":"smooth"});
+ if(window.location.hash){try{history.replaceState(history.state,"",window.location.pathname+window.location.search)}catch(_){}}
+}
+brand.addEventListener("click",home);
+back.addEventListener("click",home);
+function update(){
+ frame=0;
+ const y=Math.max(0,window.scrollY||document.documentElement.scrollTop||0);
+ const available=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+ bar.style.transform="scaleX("+Math.min(1,y/available)+")";
+ header.classList.toggle("scrolled",y>25);
+ back.classList.toggle("visible",y>470);
+ back.tabIndex=y>470?0:-1;
+ if(!reduce()&&y<1100){
+  wave.style.setProperty("--wave-offset",Math.min(92,y*.13).toFixed(1)+"px");
+  heroCopy.style.setProperty("--hero-offset",Math.min(35,y*.055).toFixed(1)+"px");
+ }else{
+  wave.style.setProperty("--wave-offset","0px");
+  heroCopy.style.setProperty("--hero-offset","0px");
+ }
+}
+function onScroll(){if(!frame)frame=requestAnimationFrame(update)}
+window.addEventListener("scroll",onScroll,{passive:true});
+window.addEventListener("resize",onScroll,{passive:true});
+media.addEventListener?.("change",onScroll);
+update();
+if(!reduce() && "IntersectionObserver" in window){
+ document.documentElement.classList.add("js-motion");
+ const reveal=new IntersectionObserver(entries=>{
+  for(const item of entries)if(item.isIntersecting){item.target.classList.add("revealed");reveal.unobserve(item.target)}
+ },{threshold:0.07,rootMargin:"0px 0px -28px 0px"});
+ document.querySelectorAll("[data-reveal]").forEach(x=>reveal.observe(x));
+}
+function notify(message){clearTimeout(toastTimer);toast.textContent=message;toast.classList.add("visible");toastTimer=setTimeout(()=>toast.classList.remove("visible"),2600);}
+document.getElementById("copy").addEventListener("click",()=>setTimeout(()=>{
+ const s=document.getElementById("status").textContent;
+ notify(s.includes("copied")?"Summary copied":s.includes("unavailable")?"Copy isn't available in this browser":"Summary ready");
+},180));
+document.getElementById("download").addEventListener("click",()=>notify("CSV report download started"));
+document.getElementById("file").addEventListener("change",()=>{
+ document.querySelectorAll(".stepper .step").forEach((s,i)=>s.classList.toggle("on",i===0));
+},false);
+})();
+</script>
+<script>
+/* More useful than decorative animation: report filtering and repeat scans. */
+(function(){
+"use strict";
+const root=document.getElementById("results"),list=document.getElementById("issues"),controls=document.getElementById("issue-filters"),empty=document.getElementById("filter-empty"),buttons=Array.from(controls.querySelectorAll("button"));
+let active="all";
+function items(){return Array.from(list.querySelectorAll(".issue"));}
+function repaint(){
+ const all=items(),err=all.filter(x=>x.querySelector("b")?.textContent.startsWith("Error")),warning=all.filter(x=>x.querySelector("b")?.textContent.startsWith("Warning"));
+ controls.hidden=all.length===0;
+ for(const button of buttons){const type=button.dataset.filter;const count=type==="errors"?err.length:type==="warnings"?warning.length:all.length;button.querySelector("span").textContent=count;button.setAttribute("aria-pressed",String(active===type));}
+ let visible=0;
+ for(const item of all){
+   const severity=item.querySelector("b")?.textContent||"";
+   const show=active==="all"||(active==="errors"&&severity.startsWith("Error"))||(active==="warnings"&&severity.startsWith("Warning"));
+   item.hidden=!show;if(show)visible++;
+ }
+ empty.hidden=visible!==0||all.length===0;
+ empty.textContent=active==="errors"?"No error findings in this scan.":active==="warnings"?"No warning findings in this scan.":"";
+}
+for(const button of buttons){button.addEventListener("click",()=>{active=button.dataset.filter;repaint();});}
+new MutationObserver(repaint).observe(list,{childList:true});
+repaint();
+document.getElementById("new-scan").addEventListener("click",()=>{
+ document.getElementById("file").value="";
+ document.getElementById("selected-file").textContent="CSV format · Up to 12 MB";
+ document.getElementById("status").textContent="Ready for another CSV.";
+ root.classList.add("hidden");
+ active="all";
+ document.querySelectorAll(".stepper .step").forEach((s,i)=>s.classList.toggle("on",i===0));
+ document.getElementById("scanner").scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+});
 })();
 </script>
 </body></html>
