@@ -208,6 +208,38 @@ html{scroll-behavior:auto}
 .preview-report a:hover{color:#0b4631}
 .preview-report span{color:#8a9e94}
 
+
+/* Lantern Row motion signature: an unhurried current, not decorative particles. */
+.hero-wave{overflow:visible;pointer-events:none}
+.hero-wave path{transform-box:fill-box;transform-origin:center;will-change:transform}
+.hero-wave path:nth-of-type(1){animation:lantern-undertow 13s ease-in-out infinite alternate}
+.hero-wave path:nth-of-type(2){animation:lantern-surface 9.5s ease-in-out infinite alternate}
+.hero-wave path:nth-of-type(3){animation:lantern-low-tide 16s ease-in-out infinite alternate-reverse}
+.hero-wave path:nth-of-type(4){animation:lantern-surface 13s ease-in-out infinite alternate-reverse}
+.hero::before{animation:lantern-atmosphere 21s ease-in-out infinite alternate;transform-origin:75% 50%}
+@keyframes lantern-undertow{
+0%{transform:translate3d(-24px,8px,0) scaleY(.98);opacity:.62}
+50%{transform:translate3d(12px,-12px,0) scaleY(1.06);opacity:1}
+100%{transform:translate3d(30px,5px,0) scaleY(1.01);opacity:.76}
+}
+@keyframes lantern-surface{
+0%{transform:translate3d(-16px,-8px,0) scaleY(1.02);opacity:.75}
+50%{transform:translate3d(8px,10px,0) scaleY(.965);opacity:1}
+100%{transform:translate3d(20px,-5px,0) scaleY(1.04);opacity:.82}
+}
+@keyframes lantern-low-tide{
+0%{transform:translate3d(15px,10px,0)}
+50%{transform:translate3d(-7px,-6px,0)}
+100%{transform:translate3d(-24px,12px,0)}
+}
+@keyframes lantern-atmosphere{
+0%{transform:translate3d(-3%,0,0) scale(.98);opacity:.72}
+100%{transform:translate3d(2%,2%,0) scale(1.06);opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+.hero-wave path,.hero::before{animation:none!important;transform:none!important;will-change:auto}
+}
+
 </style>
 </head>
 <body>
@@ -342,7 +374,7 @@ file.addEventListener("change",()=>reportName(file.files&&file.files[0]));
 ["dragenter","dragover"].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add("dragging");}));
 ["dragleave","drop"].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove("dragging");}));
 zone.addEventListener("drop",e=>{const incoming=e.dataTransfer?.files;if(!incoming||!incoming.length)return;try{file.files=incoming;reportName(file.files[0]);document.getElementById("status").textContent="Ready to scan "+file.files[0].name+".";}catch(err){document.getElementById("status").textContent="Please use Browse files to select your CSV."; }});
-const reveal=()=>setTimeout(()=>{if(!result.classList.contains("hidden")){steps.forEach(s=>s.classList.add("on"));result.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});}},70);
+const reveal=()=>setTimeout(()=>{if(!result.classList.contains("hidden")){steps.forEach(s=>s.classList.add("on"));window.LanternMotion?.to(result);}},70);
 document.getElementById("demo").addEventListener("click",reveal);
 document.getElementById("scan").addEventListener("click",()=>setTimeout(reveal,160));
 })();
@@ -355,13 +387,64 @@ const header=document.getElementById("top"),brand=document.querySelector(".brand
 const media=window.matchMedia("(prefers-reduced-motion: reduce)");
 let frame=0,toastTimer=0;
 const reduce=()=>media.matches;
+/* Explicit frame-by-frame navigation avoids iOS Safari's inconsistent native
+   smooth-scroll + synchronous history.replaceState jump.
+   It also permits touch/wheel/key input to interrupt an in-progress glide. */
+let navigationFrame=0,interruptors=[];
+const stopNavigation=()=>{
+ if(navigationFrame){cancelAnimationFrame(navigationFrame);navigationFrame=0;}
+ for(const [name,handler,opts] of interruptors)window.removeEventListener(name,handler,opts);
+ interruptors=[];
+};
+const afterNavigation=(hash)=>{
+ if(hash===undefined)return;
+ try{
+  const target=window.location.pathname+window.location.search+(hash||"");
+  if(location.hash!==hash)history.replaceState(history.state,"",target);
+ }catch(_){}
+};
+function glideTo(target,hash){
+ stopNavigation();
+ const sticky=header?.offsetHeight||68;
+ const y=typeof target==="number"?Math.max(0,target):Math.max(0,target.getBoundingClientRect().top+scrollY-sticky-18);
+ const from=Math.max(0,window.scrollY||document.documentElement.scrollTop||0);
+ const distance=y-from;
+ if(Math.abs(distance)<2){afterNavigation(hash);return;}
+ if(reduce()||!window.requestAnimationFrame){window.scrollTo({top:y,left:0,behavior:"instant"});afterNavigation(hash);return;}
+ const duration=Math.max(620,Math.min(1480,560+Math.sqrt(Math.abs(distance))*14));
+ let start;
+ const interrupt=()=>stopNavigation();
+ const listeners=[["wheel",interrupt,{passive:true}],["touchstart",interrupt,{passive:true}],["keydown",interrupt,{passive:true}],["pointerdown",interrupt,{passive:true}]];
+ for(const [name,handler,opts] of listeners)window.addEventListener(name,handler,opts);
+ interruptors=listeners;
+ const ease=t=>-(Math.cos(Math.PI*t)-1)/2;
+ const frameTick=now=>{
+  if(start===undefined)start=now;
+  const t=Math.min(1,(now-start)/duration);
+  window.scrollTo({top:Math.max(0,Math.round(from+distance*ease(t))),left:0,behavior:"instant"});
+  if(t<1)navigationFrame=requestAnimationFrame(frameTick);
+  else{stopNavigation();window.scrollTo({top:y,left:0,behavior:"instant"});afterNavigation(hash);}
+ };
+ navigationFrame=requestAnimationFrame(frameTick);
+}
+window.LanternMotion={to:(el)=>glideTo(el)};
 function home(e){
  if(e)e.preventDefault();
- window.scrollTo({top:0,left:0,behavior:reduce()?"auto":"smooth"});
- if(window.location.hash){try{history.replaceState(history.state,"",window.location.pathname+window.location.search)}catch(_){}}
+ glideTo(0,"");
 }
 brand.addEventListener("click",home);
 back.addEventListener("click",home);
+document.querySelectorAll('a[href^="#"]').forEach(link=>{
+ if(link===brand)return;
+ link.addEventListener("click",e=>{
+  const hash=link.getAttribute("href");
+  if(!hash||hash==="#")return;
+  const el=document.getElementById(hash.slice(1));
+  if(!el)return;
+  e.preventDefault();
+  glideTo(el,hash);
+ });
+});
 function update(){
  frame=0;
  const y=Math.max(0,window.scrollY||document.documentElement.scrollTop||0);
@@ -431,7 +514,7 @@ document.getElementById("new-scan").addEventListener("click",()=>{
  root.classList.add("hidden");
  active="all";
  document.querySelectorAll(".stepper .step").forEach((s,i)=>s.classList.toggle("on",i===0));
- document.getElementById("scanner").scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+ window.LanternMotion?.to(document.getElementById("scanner"));
 });
 })();
 </script>
