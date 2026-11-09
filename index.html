@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free CSV File Checker — Lantern Row</title>
+<meta name="description" content="Inspect CSV structure, missing fields, duplicates and spreadsheet formula risks privately in your browser. Free tool. Optional CA$29 review.">
+<style>
+:root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#f1eff9;background:#0e101c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#3b2d65,transparent 45%),#0e101c}
+main{max-width:1000px;margin:auto;padding:40px 22px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;letter-spacing:.1em;font-weight:700;font-size:12px;color:#e2d7ff}
+.chip{padding:9px;border:1px solid #77738d;border-radius:40px;font-size:10px;color:#d1cce2}h1{font-size:clamp(36px,6vw,69px);letter-spacing:-.05em;max-width:760px;line-height:1.06;margin:90px 0 24px}h1 em{font-style:normal;color:#bea8ff}
+p{color:#b8b7ca;line-height:1.6}p.lead{max-width:650px;font-size:18px}.drop{display:block;background:#1d2030;border:2px dashed #77718f;border-radius:22px;text-align:center;padding:56px 20px;margin-top:35px;cursor:pointer}
+.drop:hover,.drop.drag{background:#292b44;border-color:#d0b7ff}.drop strong{display:block;font-size:23px}.drop small{display:block;margin-top:14px;color:#a8a4c0}input[type=file]{display:none}.privacy{margin:17px 0;font-size:13px;color:#a3dab8}
+.status{font-size:13px;color:#b3a9d8;min-height:20px}.hide{display:none!important}
+section{margin-top:40px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stat,.panel{background:#202332;border:1px solid #3c3b56;border-radius:16px;padding:22px}.stat label{display:block;font-size:11px;color:#c3bbd8}.stat b{display:block;font-size:30px;margin-top:10px}
+.panel{margin-top:18px}.findings{padding:0;list-style:none}.findings li{padding:15px 0;border-top:1px solid #363a4b;line-height:1.6}.severity{font-size:11px;padding:4px 8px;border-radius:7px;margin-right:12px;background:#563e6a;text-transform:uppercase;letter-spacing:.04em}
+button,.cta{display:inline-block;background:#c5b2ff;color:#181329;font-size:14px;font-weight:750;line-height:20px;padding:12px 16px;border-radius:12px;border:0;cursor:pointer;text-decoration:none}.cta:hover,button:hover{filter:brightness(1.05)}
+.banner{background:linear-gradient(130deg,#38305c,#23233c);border:1px solid #5b518a;border-radius:20px;padding:28px}.banner h2{margin:0}footer{color:#928fa9;font-size:12px;margin:65px 0}
+@media(max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}h1{margin-top:54px}.drop{padding:36px 14px}}
+</style></head><body><main>
+<header><span>LANTERN ROW / DATA TOOLS</span><span class="chip">FREE · PRIVATE · NO UPLOADS</span></header>
+<h1>Find the problems in your <em>CSV file.</em> Before they become bigger problems.</h1>
+<p class="lead">Check your data export before it reaches a CRM, spreadsheet or store: missing values, repeated rows, uneven columns, duplicate headers and spreadsheet formula risks.</p>
+<label class="drop" id="drop" role="button" tabindex="0"><strong>Drop your CSV here, or click to select it</strong><small>CSV or TXT · Maximum 8 MB · Runs locally on your device</small><input type="file" id="file" accept=".csv,.txt,text/plain,text/csv"></label>
+<p class="privacy">● Your file never leaves this browser. No servers, analytics, cookies or uploads.</p><div class="status" id="status" aria-live="polite">Ready for a file.</div>
+<section class="hide" id="result"><h2>CSV health report</h2><div class="stats">
+<div class="stat"><label>Data rows</label><b id="nrows">—</b></div><div class="stat"><label>Columns</label><b id="ncols">—</b></div><div class="stat"><label>Findings</label><b id="nissues">—</b></div><div class="stat"><label>Duplicate rows</label><b id="ndups">—</b></div></div>
+<div class="panel"><h2>Findings</h2><ul class="findings" id="findings"></ul><button id="report">Download report (.txt)</button>
+<p style="font-size:12px">This free structural check does not fix data or guarantee import compatibility, semantic accuracy or error-free content.</p></div></section>
+<section class="banner"><h2>Need a second look at a messy CSV?</h2>
+<p>Lantern Row CSV Check is an existing CA$29 paid service. See its current listing for scope, ordering and delivery terms.</p>
+<a class="cta" href="https://whop.com/linkedin-com-0cd1/" rel="noopener noreferrer" target="_blank">View CA$29 CSV Check</a>
+<p style="font-size:12px">This tool does not process payments or receive your files.</p></section>
+<footer>© 2026 Lantern Row · Privacy-first CSV structure checker</footer></main>
+<script>
+'use strict';
+var elements={}, report='',name='',limit=8*1024*1024;
+function el(id){return document.getElementById(id);}
+function delimiter(s){var choices=[',','\t',';','|'],max=0,best=',';for(var z=0;z<choices.length;z++){var q=false,n=0;for(var i=0;i<Math.min(s.length,5000);i++){if(s[i]==='"')q=!q;else if(!q&&s[i]===choices[z])n++;}if(n>max){max=n;best=choices[z];}}return best;}
+function parse(s,d){var rows=[],field='',row=[],quoted=false,after=false,line=1,start=1,errors=[];s=s.replace(/^\uFEFF/,'');for(var i=0;i<s.length;i++){var c=s[i],next=s[i+1];if(quoted){if(c==='"'&&next==='"'){field+='"';i++;}else if(c==='"'){quoted=false;after=true;}else{field+=c;if(c==='\n')line++;}}else if(c==='"'&&field===''&&!after){quoted=true;}else if(c===d){row.push(field);field='';after=false;}else if(c==='\r'||c==='\n'){if(c==='\r'&&next==='\n')i++;rows.push({v:row.concat([field]),line:start});row=[];field='';after=false;line++;start=line;}else{if(after&&c!==' '&&c!=='\t')errors.push('Unexpected character after quoted field at line '+line);field+=c;after=false;}}if(quoted)errors.push('Unclosed quote at end of file');if(row.length||field!==''||after)rows.push({v:row.concat([field]),line:start});return {rows:rows.filter(function(x){return !(x.v.length===1&&x.v[0]==='');}),errors:errors};}
+function audit(s,fname){if(new Blob([s]).size>limit)throw new Error('File exceeds 8 MB');var d=delimiter(s),p=parse(s,d),rows=p.rows;if(!rows.length)throw new Error('No CSV records found');var heads=rows[0].v.map(function(x){return x.trim()}),data=rows.slice(1),n=heads.length,found=[],duplicates=0,seen=new Set(),missing=0,ragged=[],formula=0,spaces=0;
+function add(level,title,detail){found.push({level:level,title:title,detail:detail});}
+p.errors.slice(0,8).forEach(function(x){add('high','CSV syntax',x);});
+if(n<2)add('medium','One column detected','Separator may be incorrect. Detected '+JSON.stringify(d)+'.');
+var blank=heads.map(function(x,i){return x?'':String(i+1)}).filter(Boolean);if(blank.length)add('high','Blank headers','Column(s): '+blank.join(', '));
+var unique=new Set();var same=[];heads.forEach(function(h){var k=h.toLowerCase();if(k&&unique.has(k))same.push(h);unique.add(k);});if(same.length)add('high','Duplicate headers',Array.from(new Set(same)).join(', '));
+var counts=Array(n).fill(0);data.forEach(function(r){if(r.v.length!==n)ragged.push(r.line);for(var i=0;i<n;i++){if((r.v[i]||'').trim()===''){missing++;counts[i]++;}}r.v.forEach(function(v){if(/^[\t\r\n ]*[=+\-@]/.test(v))formula++;if(v!==v.trim())spaces++;});var key=JSON.stringify(r.v);if(seen.has(key))duplicates++;else seen.add(key);});
+if(ragged.length)add('high','Irregular row width',ragged.length+' row(s) with a different field count, starting at CSV line '+ragged.slice(0,10).join(', '));
+if(missing)add('medium','Missing cells',missing+' empty field(s); top affected: '+counts.map(function(x,i){return {x:x,i:i}}).filter(function(a){return a.x;}).sort(function(a,b){return b.x-a.x}).slice(0,4).map(function(a){return (heads[a.i]||('#'+(a.i+1)))+' ('+a.x+')';}).join(', '));
+if(duplicates)add('medium','Repeated records',duplicates+' exactly duplicate row(s).');
+if(formula)add('medium','Formula-like values',formula+' values begin with spreadsheet formula characters. Review prior to spreadsheet export.');
+if(spaces)add('low','Edge whitespace',spaces+' cells have leading/trailing whitespace.');
+if(!found.length)add('low','No structural problems detected','This does not guarantee data correctness or import compatibility.');
+return {found:found,rows:data.length,cols:n,duplicates:duplicates,separator:d};}
+function show(s,n){try{var r=audit(s,n);name=n;el('result').classList.remove('hide');el('nrows').textContent=r.rows;el('ncols').textContent=r.cols;el('nissues').textContent=r.found[0].title==='No structural problems detected'?0:r.found.length;el('ndups').textContent=r.duplicates;var list=el('findings');list.replaceChildren();r.found.forEach(function(f){var li=document.createElement('li'),sev=document.createElement('span'),b=document.createElement('b'),rest=document.createElement('span');sev.className='severity';sev.textContent=f.level;b.textContent=f.title;rest.textContent=' — '+f.detail;li.append(sev,b,rest);list.appendChild(li);});report='Lantern Row — free CSV structure check\nFile: '+n+'\nRows: '+r.rows+'\nColumns: '+r.cols+'\nDelimiter: '+JSON.stringify(r.separator)+'\n\n'+r.found.map(function(f){return '['+f.level+'] '+f.title+': '+f.detail}).join('\n')+'\n\nInformational report only. Your file was not uploaded.\n';el('status').textContent='Checked '+n+' locally.';}catch(e){el('result').classList.add('hide');el('status').textContent='Could not inspect file: '+e.message;}}
+function checkFile(file){if(!file)return;if(file.size>limit){el('status').textContent='File exceeds the 8MB limit.';return;}file.text().then(function(s){show(s,file.name);}).catch(function(){el('status').textContent='Unable to read file.';});}
+el('file').addEventListener('change',function(){checkFile(this.files[0]);});el('drop').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el('file').click();}});
+['dragover','dragenter'].forEach(function(ev){el('drop').addEventListener(ev,function(e){e.preventDefault();el('drop').classList.add('drag');});});['dragleave','drop'].forEach(function(ev){el('drop').addEventListener(ev,function(e){e.preventDefault();el('drop').classList.remove('drag');});});
+el('drop').addEventListener('drop',function(e){checkFile(e.dataTransfer.files[0]);});el('report').addEventListener('click',function(){var u=URL.createObjectURL(new Blob([report],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download=(name.replace(/\.[^.]+$/,'')||'csv')+'-report.txt';a.click();setTimeout(function(){URL.revokeObjectURL(u)},1000);});
+</script></body></html>
