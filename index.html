@@ -195,6 +195,19 @@ html{scroll-behavior:auto}
 .skip-link{position:absolute;top:-80px;left:8px;z-index:200;background:#dfffba;color:#133b2c;padding:11px 16px;border-radius:8px;font-weight:800}
 .skip-link:focus{top:8px}
 
+
+.result-guide{color:#566f63;font-size:12px;line-height:1.65;max-width:610px;margin:28px 0 4px}
+#download-pdf{background:#1b4b3a;color:#fff;border-color:#1b4b3a;min-height:49px;font-size:13px;box-shadow:0 8px 18px #163d281f}
+#download-pdf:hover{background:#28644b;box-shadow:0 12px 24px #163d2829}
+#download-pdf:disabled{opacity:.7}
+@media(max-width:760px){#download-pdf{width:100%}.result-guide{margin-top:22px}}
+
+
+.preview-report{display:flex;gap:7px;justify-content:center;align-items:center;flex-wrap:wrap;color:#607d70;font-size:11px;margin:16px auto 0;line-height:1.6}
+.preview-report a{color:#21644c;text-decoration:underline;text-underline-offset:3px;font-weight:800}
+.preview-report a:hover{color:#0b4631}
+.preview-report span{color:#8a9e94}
+
 </style>
 </head>
 <body>
@@ -237,6 +250,7 @@ html{scroll-behavior:auto}
 <div class="scanner-actions"><button class="primary" id="scan" type="button">Scan my file <span aria-hidden="true">↗</span></button><button class="secondary" id="demo" type="button">Try sample CSV</button></div>
 <p id="status" role="status" aria-live="polite"></p>
 <div class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Your file stays yours. All processing is local.</div>
+<p class="preview-report"><a href="./assets/sample-preflight-report.pdf" target="_blank" rel="noopener">Preview a three-page example PDF report</a><span>Built from synthetic sample data</span></p>
 </section>
 </div></section>
 <section class="trustbar"><div class="container"><strong>Simple by design</strong><ul><li>No file uploaded</li><li>No signup required</li><li>Readable findings</li><li>Exportable report</li></ul></div></section>
@@ -245,7 +259,7 @@ html{scroll-behavior:auto}
 <div class="results-header"><div><span class="section-kicker">Your results</span><h2>Here’s what we found.</h2><p class="small" id="summary"></p></div><span class="live-dot">Local analysis complete</span></div>
 <div class="stats"><div class="stat"><strong id="rows">0</strong><span>Data rows</span></div><div class="stat errors"><strong id="errors">0</strong><span>Errors</span></div><div class="stat warnings"><strong id="warnings">0</strong><span>Warnings</span></div></div>
 <h3 class="findings-title">Findings</h3><div class="issue-filter-row" id="issue-filters" role="group" aria-label="Filter results"><button type="button" data-filter="all" aria-pressed="true">All <span>0</span></button><button type="button" data-filter="errors" aria-pressed="false">Errors <span>0</span></button><button type="button" data-filter="warnings" aria-pressed="false">Warnings <span>0</span></button></div><div id="issues"></div><p id="filter-empty" hidden></p>
-<div class="result-actions"><button class="primary" id="download" type="button">↓ Download full CSV report</button><button class="secondary" id="copy" type="button">Copy summary</button><button class="secondary" id="new-scan" type="button">New scan ↻</button></div>
+<p class="result-guide">Get a readable PDF with explanations and suggested checks. Need the exact findings for a spreadsheet? Export the raw CSV separately.</p><div class="result-actions"><button class="primary" id="download-pdf" type="button">Download designed PDF report</button><button class="secondary" id="download" type="button">Export raw CSV data</button><button class="secondary" id="copy" type="button">Copy summary</button><button class="secondary" id="new-scan" type="button">New scan ↻</button></div>
 </section>
 <section id="how" class="reveal-section" data-reveal>
 <span class="section-kicker">Small steps, fewer surprises</span>
@@ -254,7 +268,7 @@ html{scroll-behavior:auto}
 <div class="process">
 <article data-reveal><span class="num">01</span><h3>Choose a CSV.</h3><p>Start with a product export or supplier CSV. Your file stays on this device and is never sent to our server.</p></article>
 <article data-reveal><span class="num">02</span><h3>See the red flags.</h3><p>We flag uneven rows, missing key fields, repeated SKUs, suspicious prices and several common import risks.</p></article>
-<article data-reveal><span class="num">03</span><h3>Keep your report.</h3><p>Download the complete findings as a CSV or copy the summary. No automatic file modification.</p></article>
+<article data-reveal><span class="num">03</span><h3>Keep your report.</h3><p>Download a clear PDF with explanations, or export the raw findings as CSV. No automatic file modification.</p></article>
 </div>
 </section>
 <div class="explainer">
@@ -421,4 +435,28 @@ document.getElementById("new-scan").addEventListener("click",()=>{
 });
 })();
 </script>
+
+<script src="./assets/jspdf.umd.min.js" defer></script>
+<script src="./assets/lantern-report.js" defer></script>
+<script defer>
+(function(){
+"use strict";
+const button=document.getElementById("download-pdf");
+const status=document.getElementById("status");
+button.addEventListener("click",()=>{
+ if(!window.LanternReport||!window.jspdf){status.textContent="PDF generator could not load. Raw CSV export is still available.";return;}
+ button.disabled=true;button.textContent="Preparing your PDF...";
+ requestAnimationFrame(()=>setTimeout(()=>{
+  try{
+   const doc=window.LanternReport.create({issues:issues,count:lastRows,filename:lastFilename});
+   const safe=(lastFilename||"csv").replace(/\.csv$/i,"").replace(/[^a-z0-9-_]/gi,"-").slice(0,36)||"data";
+   doc.save("lantern-row-"+safe+"-preflight.pdf");
+   status.textContent="PDF report prepared locally. Your CSV was never uploaded.";
+  }catch(e){status.textContent="Could not generate PDF: "+(e?.message||"Unknown error");}
+  finally{button.disabled=false;button.textContent="Download designed PDF report";}
+ },45));
+});
+})();
+</script>
+
 </body></html>
