@@ -11,7 +11,7 @@
 :root{--ink:#111e24;--sub:#637277;--paper:#f5f7f3;--line:#dce5df;--deep:#091d22;--lime:#dcffa5;--mint:#a5eed5;--violet:#eae5ff;--red:#b2464e;--gold:#94630e;font-family:"DM Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper);font-synthesis:none}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;overflow-x:hidden}
+html,body{overflow-x:clip}body{margin:0}
 button,input{font:inherit}
 button,a{-webkit-tap-highlight-color:transparent}
 button:focus-visible,a:focus-visible,input:focus-visible,label:focus-within{outline:3px solid #6cbdcf;outline-offset:4px}
@@ -74,7 +74,7 @@ h1 span{display:block;color:var(--lime)}
 .secondary{background:#fff;color:#395d55;border:1px solid #cfddd5;padding:12px 17px}
 .secondary:hover{background:#f1f8f3}
 .scanner-actions .primary{flex:1}.scanner-actions .secondary{flex:1}
-button:disabled{opacity:.6;cursor:wait;transform:none}
+button:disabled{opacity:1;cursor:wait;transform:none;background:#d8e3da;color:#5b7061;border:1px solid #bccdc0}
 #status{font-size:12px;color:#285e52;min-height:18px;margin:16px 0 0;line-height:1.5}
 .privacy{display:flex;justify-content:center;align-items:center;gap:7px;border-top:1px solid #e7eee7;margin-top:17px;padding-top:18px;color:#6a8077;font-size:11px;font-weight:600}
 .privacy svg{width:14px;height:14px;stroke:#277b5d}
@@ -199,7 +199,7 @@ html{scroll-behavior:auto}
 .result-guide{color:#566f63;font-size:12px;line-height:1.65;max-width:610px;margin:28px 0 4px}
 #download-pdf{background:#1b4b3a;color:#fff;border-color:#1b4b3a;min-height:49px;font-size:13px;box-shadow:0 8px 18px #163d281f}
 #download-pdf:hover{background:#28644b;box-shadow:0 12px 24px #163d2829}
-#download-pdf:disabled{opacity:.7}
+#download-pdf:disabled{opacity:1;background:#bbd2c1;color:#375a43;border-color:#bbd2c1;cursor:progress}
 @media(max-width:760px){#download-pdf{width:100%}.result-guide{margin-top:22px}}
 
 
@@ -215,7 +215,7 @@ html{scroll-behavior:auto}
 <div class="scroll-progress" aria-hidden="true"><span id="scroll-progress-fill"></span></div>
 <header class="topbar" id="top"><div class="container">
 <a class="brand" href="#top" title="Return to top of page" aria-label="Lantern Row home">
-<span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 21V5l5-3 5 3v16M6 21h12M9 9h6M9 13h6M9 17h6"/></svg></span>
+<span class="logo"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M7 21V5l5-3 5 3v16M6 21h12M9 9h6M9 13h6M9 17h6"/></svg></span>
 <span class="brand-type">Lantern Row<small>CSV Preflight Studio</small></span></a>
 <nav class="links" aria-label="Main navigation"><a href="#scanner">Free scanner</a><a href="#how">How it works</a><a href="#review">Expert review</a></nav>
 <a class="top-link" href="#scanner">Open the scanner ↗</a>
@@ -229,10 +229,10 @@ html{scroll-behavior:auto}
 <h1>Import with clarity.<span>Not crossed fingers.</span></h1>
 <p>A beautifully simple, genuinely useful preflight for messy product files. Catch common CSV problems before they become storefront headaches. Nothing leaves your device.</p>
 <div class="hero-tags">
-<span><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2L4 6v6c0 5 3.5 8.3 8 10 4.5-1.7 8-5 8-10V6Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg> 100% in your browser</span>
-<span><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Free, instant checks</span>
+<span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2L4 6v6c0 5 3.5 8.3 8 10 4.5-1.7 8-5 8-10V6Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg> 100% in your browser</span>
+<span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Free, instant checks</span>
 </div>
-<a class="hero-cta" href="#scanner">Start a free scan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+<a class="hero-cta" href="#scanner">Start a free scan <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
 <p class="hero-note">No signup. No file uploads. No surprises.</p>
 </div>
 <section class="scanner" id="scanner" aria-label="Free CSV scanning tool">
@@ -241,7 +241,7 @@ html{scroll-behavior:auto}
 <p class="scanner-intro">Drop in a CSV and see what deserves a closer look.</p>
 <div class="stepper" aria-label="Three-step workflow"><div class="step on"><span>1</span> Select file</div><div class="step"><span>2</span> Run checks</div><div class="step"><span>3</span> Export report</div></div>
 <label class="dropzone" id="dropzone" for="file">
-<span class="upload-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+<span class="upload-icon"><svg aria-hidden="true" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
 <strong>Drop your CSV here</strong>
 <span class="drop-sub">or <span class="choose">browse files</span> to get started</span>
 <input id="file" type="file" accept=".csv,text/csv" aria-label="Select a CSV file for local scan">
@@ -249,7 +249,7 @@ html{scroll-behavior:auto}
 </label>
 <div class="scanner-actions"><button class="primary" id="scan" type="button">Scan my file <span aria-hidden="true">↗</span></button><button class="secondary" id="demo" type="button">Try sample CSV</button></div>
 <p id="status" role="status" aria-live="polite"></p>
-<div class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Your file stays yours. All processing is local.</div>
+<div class="privacy"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Your file stays yours. All processing is local.</div>
 <p class="preview-report"><a href="./assets/sample-preflight-report.pdf" target="_blank" rel="noopener">Preview a three-page example PDF report</a><span>Built from synthetic sample data</span></p>
 </section>
 </div></section>
