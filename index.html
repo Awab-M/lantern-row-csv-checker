@@ -240,6 +240,9 @@ html{scroll-behavior:auto}
 .hero-wave path,.hero::before{animation:none!important;transform:none!important;will-change:auto}
 }
 
+
+.scanner-top .live-dot[data-state="complete"]{background:#dff4e9;border-color:#bfe9d0;color:#236244}
+
 </style>
 </head>
 <body>
@@ -369,12 +372,12 @@ $("copy").addEventListener("click",()=>{const s=$("summary").textContent+"\n"+is
 <script>
 (function(){
 const file=document.getElementById("file"),zone=document.getElementById("dropzone"),selected=document.getElementById("selected-file"),result=document.getElementById("results"),steps=document.querySelectorAll(".stepper .step");
-const reportName=f=>{selected.textContent=f?f.name+" · "+(f.size/1024).toFixed(1)+" KB":"CSV format · Up to 12 MB";if(f){steps[0]?.classList.add("on");}};
+const reportName=f=>{selected.textContent=f?f.name+" · "+(f.size/1024).toFixed(1)+" KB":"CSV format · Up to 12 MB";if(f){steps[0]?.classList.add("on");const badge=document.querySelector(".scanner-top .live-dot");badge.textContent="File selected";delete badge.dataset.state;}};
 file.addEventListener("change",()=>reportName(file.files&&file.files[0]));
 ["dragenter","dragover"].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.add("dragging");}));
 ["dragleave","drop"].forEach(type=>zone.addEventListener(type,e=>{e.preventDefault();zone.classList.remove("dragging");}));
 zone.addEventListener("drop",e=>{const incoming=e.dataTransfer?.files;if(!incoming||!incoming.length)return;try{file.files=incoming;reportName(file.files[0]);document.getElementById("status").textContent="Ready to scan "+file.files[0].name+".";}catch(err){document.getElementById("status").textContent="Please use Browse files to select your CSV."; }});
-const reveal=()=>setTimeout(()=>{if(!result.classList.contains("hidden")){steps.forEach(s=>s.classList.add("on"));window.LanternMotion?.to(result);}},70);
+const reveal=()=>setTimeout(()=>{if(!result.classList.contains("hidden")){const badge=document.querySelector(".scanner-top .live-dot");const n=Number(document.getElementById("errors").textContent)+Number(document.getElementById("warnings").textContent);badge.textContent=n?n+" findings ready":"No flags detected";badge.dataset.state="complete";steps.forEach(s=>s.classList.add("on"));window.LanternMotion?.to(result);}},70);
 document.getElementById("demo").addEventListener("click",reveal);
 document.getElementById("scan").addEventListener("click",()=>setTimeout(reveal,160));
 })();
@@ -510,7 +513,7 @@ repaint();
 document.getElementById("new-scan").addEventListener("click",()=>{
  document.getElementById("file").value="";
  document.getElementById("selected-file").textContent="CSV format · Up to 12 MB";
- document.getElementById("status").textContent="Ready for another CSV.";
+ document.getElementById("status").textContent="Ready for another CSV.";const badge=document.querySelector(".scanner-top .live-dot");badge.textContent="Ready to scan";delete badge.dataset.state;
  root.classList.add("hidden");
  active="all";
  document.querySelectorAll(".stepper .step").forEach((s,i)=>s.classList.toggle("on",i===0));
