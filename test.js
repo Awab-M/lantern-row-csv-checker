@@ -1,4 +1,5 @@
-const assert=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm");
+const assert0=require("node:assert/strict"),fs=require("node:fs"),vm=require("node:vm");
+let checks=0;const assert=Object.assign((...a)=>{checks++;return assert0(...a)},{equal:(...a)=>{checks++;return assert0.equal(...a)},throws:(...a)=>{checks++;return assert0.throws(...a)}});
 const html=fs.readFileSync(__dirname+"/index.html","utf8");
 const code=html.match(/<script>([\s\S]*?)<\/script>/)[1];
 new vm.Script(code,{filename:"inline-scanner.js"});
@@ -19,4 +20,8 @@ assert(result.issues.some(x=>x.message.includes("lower than")));
 assert(result.issues.some(x=>x.message.includes("not an http")));
 assert.equal(vm.runInContext('inspect("Handle,Title\\na,Good\\n").issues.length',ctx),0);
 assert(vm.runInContext('inspect("A,B\\n1,2,3\\n").issues.some(x=>x.severity==="Error")',ctx));
-console.log("PASS 11 CSV syntax and detection checks; rows="+result.count+" findings="+result.issues.length);
+// Row numbers must match the record position in the file, including skipped blank lines
+assert.equal(vm.runInContext('inspect("Handle,Title\\na,A\\n\\n\\nb,B,extra\\n").issues[0].row',ctx),5);
+// Whitespace-only lines are blank, not malformed records
+assert.equal(vm.runInContext('inspect("Handle,Title\\na,A\\n   \\n").issues.length',ctx),0);
+console.log("PASS "+checks+" CSV syntax and detection checks; rows="+result.count+" findings="+result.issues.length);

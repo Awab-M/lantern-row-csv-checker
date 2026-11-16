@@ -327,27 +327,28 @@ html{scroll-behavior:auto}
 const $=id=>document.getElementById(id);let issues=[],lastRows=0,lastFilename="";
 function csvParse(text){
  text=String(text||"").replace(/^\uFEFF/,"");
- const rows=[];let row=[],cell="",quoted=false,atStart=true;
+ const rows=[],nums=[];let row=[],cell="",quoted=false,atStart=true,rec=1;
  for(let i=0;i<text.length;i++){const c=text[i];
   if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else if(quoted){quoted=false;}else if(atStart){quoted=true;}else{cell+=c;}}
   else if(c===','&&!quoted){row.push(cell);cell="";atStart=true;}
-  else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x!==""))rows.push(row);row=[];cell="";atStart=true;}
+  else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row),nums.push(rec);rec++;row=[];cell="";atStart=true;}
   else{cell+=c;atStart=false;}
  }
  if(quoted)throw new Error("Unclosed quoted field near the end of the file.");
- row.push(cell);if(row.some(x=>x!==""))rows.push(row);
+ row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row),nums.push(rec);
+ rows.recordNumbers=nums;
  return rows;
 }
 function inspect(input){
  const table=csvParse(input),out=[];if(!table.length)throw new Error("No rows found. Please choose a non-empty CSV.");
  const headers=table[0].map(h=>h.trim()),keys=headers.map(h=>h.toLowerCase()),index=(...opts)=>keys.findIndex(k=>opts.some(o=>k===o));
  const push=(severity,row,field,message)=>out.push({severity,row,field,message});
- const seenHeads=new Set();headers.forEach((h,i)=>{if(!h)push("Error",1,"Column "+(i+1),"Blank header");else if(seenHeads.has(h.toLowerCase()))push("Error",1,h,"Repeated header name");seenHeads.add(h.toLowerCase());});
- const handle=index("handle","url handle"),title=index("title","product title"),sku=index("variant sku","sku"),price=index("variant price","price"),compare=index("variant compare at price","compare at price"),image=index("image src","image url","product image url"),data=table.slice(1);
- if(handle<0)push("Warning",1,"Handle","No Shopify Handle / URL handle column detected; may be a supplier export, not a Shopify import template");
- if(title<0)push("Warning",1,"Title","No Shopify product title column detected");
+ const seenHeads=new Set();headers.forEach((h,i)=>{if(!h)push("Error",hr,"Column "+(i+1),"Blank header");else if(seenHeads.has(h.toLowerCase()))push("Error",hr,h,"Repeated header name");seenHeads.add(h.toLowerCase());});
+ const handle=index("handle","url handle"),title=index("title","product title"),sku=index("variant sku","sku"),price=index("variant price","price"),compare=index("variant compare at price","compare at price"),image=index("image src","image url","product image url"),data=table.slice(1),nums=table.recordNumbers,hr=nums[0];
+ if(handle<0)push("Warning",hr,"Handle","No Shopify Handle / URL handle column detected; may be a supplier export, not a Shopify import template");
+ if(title<0)push("Warning",hr,"Title","No Shopify product title column detected");
  const seenSku=new Map(),seenHandle=new Map();
- for(let n=0;n<data.length;n++){const row=data[n],r=n+2;if(row.length!==headers.length)push("Error",r,"Columns","Found "+row.length+" fields; expected "+headers.length);
+ for(let n=0;n<data.length;n++){const row=data[n],r=nums[n+1];if(row.length!==headers.length)push("Error",r,"Columns","Found "+row.length+" fields; expected "+headers.length);
  const cell=i=>i>=0?String(row[i]||"").trim():"";
  if(handle>=0&&!cell(handle))push("Warning",r,headers[handle],"Missing handle");
  if(title>=0&&!cell(title))push("Warning",r,headers[title],"Blank title (sometimes valid on continuation/variant rows)");
@@ -362,7 +363,7 @@ function inspect(input){
  return {count:data.length,issues:out,headers};
 }
 function run(text,name){lastFilename=name;try{const result=inspect(text);issues=result.issues;lastRows=result.count;render();$("status").textContent="Scan complete. No files were uploaded.";}catch(e){$("results").classList.add("hidden");$("status").textContent="Cannot scan: "+e.message;}}
-function render(){$("results").classList.remove("hidden");const errors=issues.filter(x=>x.severity==="Error").length,warns=issues.length-errors;$("rows").textContent=lastRows;$("errors").textContent=errors;$("warnings").textContent=warns;$("summary").textContent=(lastFilename||"File")+" — "+lastRows+" rows, "+errors+" errors, "+warns+" warnings. Review findings; no automatic corrections are made.";$("issues").replaceChildren();if(!issues.length){const p=document.createElement("p");p.className="small";p.textContent="No issues detected by these limited checks. This is not a guarantee that your import will succeed.";$("issues").append(p);}issues.slice(0,120).forEach(x=>{const el=document.createElement("div");el.className="issue";const b=document.createElement("b");b.textContent=x.severity+" · Row "+x.row+" · "+x.field;const small=document.createElement("small");small.textContent=x.message;el.append(b,small);$("issues").append(el);});if(issues.length>120){const p=document.createElement("p");p.className="small";p.textContent="Showing first 120 findings. Download the full report for all."; $("issues").append(p);}}
+function render(){$("results").classList.remove("hidden");const errors=issues.filter(x=>x.severity==="Error").length,warns=issues.length-errors;$("rows").textContent=lastRows;$("errors").textContent=errors;$("warnings").textContent=warns;$("summary").textContent=(lastFilename||"File")+" — "+lastRows+" rows, "+errors+" errors, "+warns+" warnings. Review findings; no automatic corrections are made.";$("issues").replaceChildren();if(!issues.length){const p=document.createElement("p");p.className="small";p.textContent="No issues detected by these limited checks. This is not a guarantee that your import will succeed.";$("issues").append(p);}issues.slice(0,120).forEach(x=>{const el=document.createElement("div");el.className="issue";const b=document.createElement("b");b.textContent=x.severity+" · Row "+x.row+" · "+x.field;const small=document.createElement("small");small.textContent=x.message;el.append(b,small);$("issues").append(el);});if(issues.length>120){const p=document.createElement("p");p.className="small";p.textContent="Showing first 120 findings. Export the raw CSV data for all of them."; $("issues").append(p);}}
 function quote(v){const s=String(v??"");return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
 $("scan").addEventListener("click",async()=>{const f=$("file").files[0];if(!f){$("status").textContent="Choose a CSV first, or try the sample.";return;}if(f.size>12*1024*1024){$("status").textContent="The browser scan has a 12 MB limit.";return;}try{run(await f.text(),f.name);}catch(e){$("status").textContent="Cannot read file: "+e.message;}});
 $("demo").addEventListener("click",()=>run('Handle,Title,Variant SKU,Variant Price,Variant Compare At Price,Image Src\nblue-shirt,Blue Shirt,SKU001,19.99,29.99,https://example.com/shirt.jpg\nred-shirt,Red Shirt,SKU001,$12,10,broken-image\n,No Handle,,10.00,,\nblue-shirt,Different Title,SKU004,15,10,https://example.com/other.jpg\n','sample.csv'));
