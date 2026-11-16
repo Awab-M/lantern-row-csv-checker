@@ -327,15 +327,17 @@ html{scroll-behavior:auto}
 const $=id=>document.getElementById(id);let issues=[],lastRows=0,lastFilename="";
 function csvParse(text){
  text=String(text||"").replace(/^\uFEFF/,"");
- const rows=[],nums=[];let row=[],cell="",quoted=false,atStart=true,rec=1;
+ const rows=[],nums=[];let row=[],cell="",quoted=false,atStart=true,rec=1,tally={comma:0,semi:0,tab:0};
+ /* Ends the current record; blank records are skipped. rows.headerSeps keeps the unquoted separator counts of the first non-blank record (the header). */
+ const endRecord=()=>{row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row),nums.push(rec),rows.headerSeps=rows.headerSeps||tally;rec++;row=[];cell="";atStart=true;tally={comma:0,semi:0,tab:0};};
  for(let i=0;i<text.length;i++){const c=text[i];
   if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else if(quoted){quoted=false;}else if(atStart){quoted=true;}else{cell+=c;}}
-  else if(c===','&&!quoted){row.push(cell);cell="";atStart=true;}
-  else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row),nums.push(rec);rec++;row=[];cell="";atStart=true;}
-  else{cell+=c;atStart=false;}
+  else if(c===','&&!quoted){tally.comma++;row.push(cell);cell="";atStart=true;}
+  else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;endRecord();}
+  else{if(!quoted){if(c===';')tally.semi++;else if(c==='\t')tally.tab++;}cell+=c;atStart=false;}
  }
  if(quoted)throw new Error("Unclosed quoted field near the end of the file.");
- row.push(cell);if(row.some(x=>x.trim()!==""))rows.push(row),nums.push(rec);
+ endRecord();
  rows.recordNumbers=nums;
  return rows;
 }
@@ -344,6 +346,11 @@ function inspect(input){
  const headers=table[0].map(h=>h.trim()),keys=headers.map(h=>h.toLowerCase()),index=(...opts)=>keys.findIndex(k=>opts.some(o=>k===o));
  const push=(severity,row,field,message)=>out.push({severity,row,field,message});
  const nums=table.recordNumbers,hr=nums[0];
+ /* File-level: U+FFFD means the UTF-8 decode replaced bytes it could not read */
+ const encoding=/\uFFFD/.test(input)?[{severity:"Warning",row:hr,field:"File",message:"File does not appear to be UTF-8, and some characters could not be read. Re-export as \"CSV UTF-8\" and scan again."}]:[];
+ /* No unquoted comma but an unquoted ; or tab in the header: another delimiter. Report that alone; do not parse with it. */
+ const seps=table.headerSeps;
+ if(seps.comma===0&&(seps.semi>0||seps.tab>0)){push("Error",hr,"Delimiter","File appears to be "+(seps.semi>0?"semicolon":"tab")+"-delimited. Shopify imports need comma-separated CSV; re-export with commas as the delimiter.");return {count:table.length-1,issues:encoding.concat(out),headers};}
  const seenHeads=new Set();headers.forEach((h,i)=>{if(!h)push("Error",hr,"Column "+(i+1),"Blank header");else if(seenHeads.has(h.toLowerCase()))push("Error",hr,h,"Repeated header name");seenHeads.add(h.toLowerCase());});
  const handle=index("handle","url handle"),title=index("title","product title"),sku=index("variant sku","sku"),price=index("variant price","price"),compare=index("variant compare at price","compare at price"),image=index("image src","image url","product image url"),data=table.slice(1);
  if(handle<0)push("Warning",hr,"Handle","No Shopify Handle / URL handle column detected; may be a supplier export, not a Shopify import template");
@@ -353,7 +360,7 @@ function inspect(input){
  const cell=i=>i>=0?String(row[i]||"").trim():"";
  if(handle>=0&&!cell(handle))push("Warning",r,headers[handle],"Missing handle");
  if(title>=0&&!cell(title))push("Warning",r,headers[title],"Blank title (sometimes valid on continuation/variant rows)");
- const s=cell(sku);if(s){if(seenSku.has(s))push("Warning",r,headers[sku],"SKU also appears on row "+seenSku.get(s)+"; verify whether intentional");else seenSku.set(s,r);}
+ const s=cell(sku),sk=s.toLowerCase();if(s){if(seenSku.has(sk)){const prev=seenSku.get(sk);push("Warning",r,headers[sku],"SKU also appears on row "+prev.row+": written \""+prev.text+"\""+(prev.text===s?" both times":" and \""+s+"\"")+"; verify whether intentional");}else seenSku.set(sk,{row:r,text:s});}
  const h=cell(handle);if(h){if(seenHandle.has(h)){const prev=seenHandle.get(h);if(title>=0&&cell(title)&&prev.title&&cell(title)!==prev.title)push("Warning",r,headers[handle],"Same handle has different titles; inspect variants");}else seenHandle.set(h,{row:r,title:cell(title)});}
  let p=null,c=null;
  if(price>=0&&cell(price)){let v=cell(price);if(!/^(?:\d+)(?:\.\d{1,2})?$/.test(v))push("Warning",r,headers[price],"Price is not a plain nonnegative decimal");else p=Number(v);}
@@ -361,14 +368,17 @@ function inspect(input){
  if(p!==null&&c!==null&&c<p)push("Warning",r,headers[compare],"Compare-at price is lower than selling price");
  if(image>=0&&cell(image)&&!/^https?:\/\/\S+\.\S+/.test(cell(image)))push("Warning",r,headers[image],"Image field is not an http(s) URL");
  }
- return {count:data.length,issues:out,headers};
+ return {count:data.length,issues:encoding.concat(out),headers};
 }
 function run(text,name){lastFilename=name;try{const result=inspect(text);issues=result.issues;lastRows=result.count;render();$("status").textContent="Scan complete. No files were uploaded.";}catch(e){$("results").classList.add("hidden");$("status").textContent="Cannot scan: "+e.message;}}
 function render(){$("results").classList.remove("hidden");const errors=issues.filter(x=>x.severity==="Error").length,warns=issues.length-errors;$("rows").textContent=lastRows;$("errors").textContent=errors;$("warnings").textContent=warns;$("summary").textContent=(lastFilename||"File")+" — "+lastRows+" rows, "+errors+" errors, "+warns+" warnings. Review findings; no automatic corrections are made.";$("issues").replaceChildren();if(!issues.length){const p=document.createElement("p");p.className="small";p.textContent="No issues detected by these limited checks. This is not a guarantee that your import will succeed.";$("issues").append(p);}issues.slice(0,120).forEach(x=>{const el=document.createElement("div");el.className="issue";const b=document.createElement("b");b.textContent=x.severity+" · Row "+x.row+" · "+x.field;const small=document.createElement("small");small.textContent=x.message;el.append(b,small);$("issues").append(el);});if(issues.length>120){const p=document.createElement("p");p.className="small";p.textContent="Showing first 120 findings. Export the raw CSV data for all of them."; $("issues").append(p);}}
 function quote(v){const s=String(v??"");return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+/* Spreadsheets run a leading = + - @ tab or CR as a formula; prefix a quote so the cell stays text */
+function safeCell(v){const s=String(v??"");return /^[=+\-@\t\r]/.test(s)?"'"+s:s;}
+function rawCsv(list){const data=[["Severity","CSV row","Field","Finding"],...list.map(x=>[x.severity,x.row,x.field,x.message])];return data.map(row=>row.map(v=>quote(safeCell(v))).join(",")).join("\r\n");}
 $("scan").addEventListener("click",async()=>{const f=$("file").files[0];if(!f){$("status").textContent="Choose a CSV first, or try the sample.";return;}if(f.size>12*1024*1024){$("status").textContent="The browser scan has a 12 MB limit.";return;}try{run(await f.text(),f.name);}catch(e){$("status").textContent="Cannot read file: "+e.message;}});
 $("demo").addEventListener("click",()=>run('Handle,Title,Variant SKU,Variant Price,Variant Compare At Price,Image Src\nblue-shirt,Blue Shirt,SKU001,19.99,29.99,https://example.com/shirt.jpg\nred-shirt,Red Shirt,SKU001,$12,10,broken-image\n,No Handle,,10.00,,\nblue-shirt,Different Title,SKU004,15,10,https://example.com/other.jpg\n','sample.csv'));
-$("download").addEventListener("click",()=>{const data=[["Severity","CSV row","Field","Finding"],...issues.map(x=>[x.severity,x.row,x.field,x.message])];const blob=new Blob([data.map(row=>row.map(quote).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="lantern-row-scan-report.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$("download").addEventListener("click",()=>{const blob=new Blob([rawCsv(issues)],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="lantern-row-scan-report.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 $("copy").addEventListener("click",()=>{const s=$("summary").textContent+"\n"+issues.map(x=>x.severity+" row "+x.row+" "+x.field+": "+x.message).join("\n");navigator.clipboard?.writeText(s).then(()=>$("status").textContent="Summary copied.").catch(()=>$("status").textContent="Copy unavailable in this browser.");});
 </script>
 <script>

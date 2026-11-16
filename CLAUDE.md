@@ -37,10 +37,7 @@ it never fixes files and never uploads CSV contents. A separate paid review exis
 - Netlify deploys are manual (CLI); a commit here does not publish the site.
 
 ## Known gaps (priority order)
-1. Only UTF-8 is read (`File.text()`); UTF-16/Latin-1 files are not detected or warned about.
-2. Delimiter is fixed to comma; `;` or tab files yield "no Handle column" rather than a
-   delimiter hint.
-3. Raw CSV export does not neutralize leading `=`,`+`,`-`,`@` in header-derived Field values.
-4. Page loads Google Fonts (visitor IP goes to Google; CSV data does not). Self-host to remove.
-5. SKU duplicate check is case-sensitive.
-6. Whole file is parsed in memory (12 MB cap); 60k rows scans in about 1.5 s.
+1. Only UTF-8 is read (`File.text()`). Invalid UTF-8 gets a U+FFFD warning, but UTF-16 without
+   a byte-order mark decodes as NUL-interleaved text with no U+FFFD, so it shows "no Handle column".
+2. Page loads Google Fonts (visitor IP goes to Google; CSV data does not). Self-host to remove.
+3. Whole file is parsed in memory (12 MB cap); 60k rows scans in about 1.5 s.
