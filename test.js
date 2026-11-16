@@ -24,4 +24,7 @@ assert(vm.runInContext('inspect("A,B\\n1,2,3\\n").issues.some(x=>x.severity==="E
 assert.equal(vm.runInContext('inspect("Handle,Title\\na,A\\n\\n\\nb,B,extra\\n").issues[0].row',ctx),5);
 // Whitespace-only lines are blank, not malformed records
 assert.equal(vm.runInContext('inspect("Handle,Title\\na,A\\n   \\n").issues.length',ctx),0);
+// Blank and repeated headers are reported on the header record, not thrown
+assert.equal(vm.runInContext('inspect("Handle,,Title\\na,b,c\\n").issues.filter(i=>i.message==="Blank header"&&i.row===1).length',ctx),1);
+assert.equal(vm.runInContext('inspect("\\n\\nHandle,Title,Title\\na,b,c\\n").issues.filter(i=>i.message==="Repeated header name"&&i.row===3).length',ctx),1);
 console.log("PASS "+checks+" CSV syntax and detection checks; rows="+result.count+" findings="+result.issues.length);

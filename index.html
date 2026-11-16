@@ -343,8 +343,9 @@ function inspect(input){
  const table=csvParse(input),out=[];if(!table.length)throw new Error("No rows found. Please choose a non-empty CSV.");
  const headers=table[0].map(h=>h.trim()),keys=headers.map(h=>h.toLowerCase()),index=(...opts)=>keys.findIndex(k=>opts.some(o=>k===o));
  const push=(severity,row,field,message)=>out.push({severity,row,field,message});
+ const nums=table.recordNumbers,hr=nums[0];
  const seenHeads=new Set();headers.forEach((h,i)=>{if(!h)push("Error",hr,"Column "+(i+1),"Blank header");else if(seenHeads.has(h.toLowerCase()))push("Error",hr,h,"Repeated header name");seenHeads.add(h.toLowerCase());});
- const handle=index("handle","url handle"),title=index("title","product title"),sku=index("variant sku","sku"),price=index("variant price","price"),compare=index("variant compare at price","compare at price"),image=index("image src","image url","product image url"),data=table.slice(1),nums=table.recordNumbers,hr=nums[0];
+ const handle=index("handle","url handle"),title=index("title","product title"),sku=index("variant sku","sku"),price=index("variant price","price"),compare=index("variant compare at price","compare at price"),image=index("image src","image url","product image url"),data=table.slice(1);
  if(handle<0)push("Warning",hr,"Handle","No Shopify Handle / URL handle column detected; may be a supplier export, not a Shopify import template");
  if(title<0)push("Warning",hr,"Title","No Shopify product title column detected");
  const seenSku=new Map(),seenHandle=new Map();
